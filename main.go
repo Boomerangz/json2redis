@@ -64,17 +64,31 @@ func main() {
 func handleBodies(ch chan []byte, config Config) {
 	buffer := map[string]*Message{}
 	previousTime := time.Now()
-	for body := range ch {
-		message := messagesPool.Get().(*Message)
-		err := json.Unmarshal(body, message)
-		if err != nil {
-			log.Printf("error decoding body: %s\n", err.Error())
-		}
-		message.Data = body
-		buffer[message.UUID] = message
+	ticker := time.NewTicker(time.Second)
+	tryFlush := func() {
 		if len(buffer) >= config.Buffersize || (time.Since(previousTime) > time.Second && len(buffer) > 0) {
 			go flushBuffer(buffer)
 			buffer = map[string]*Message{}
+			previousTime = time.Now()
+		}
+	}
+	for {
+		select {
+		case body := <-ch:
+			{
+				message := messagesPool.Get().(*Message)
+				err := json.Unmarshal(body, message)
+				if err != nil {
+					log.Printf("error decoding body: %s\n", err.Error())
+				}
+				message.Data = body
+				buffer[message.UUID] = message
+				tryFlush()
+			}
+		case <-ticker.C:
+			{
+				tryFlush()
+			}
 		}
 	}
 }
