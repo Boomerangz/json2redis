@@ -1,0 +1,5 @@
+port: 8001
+redis: localhost:6379
+redis_password: ""
+redis_db: 0
+buffersize: 800
