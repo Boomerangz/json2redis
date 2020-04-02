@@ -1,10 +1,9 @@
 # json2redis
 
 Чтобы запустить надо сделать
-`go build
+```go build
 
-
-./json2redis`
+./json2redis```
 
 
 Конфиги в файле conf.yaml
